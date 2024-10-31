@@ -85,7 +85,3 @@ logging.level.com.hospital=DEBUG
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## Support
-
-For support and queries, please create an issue in the GitHub repository or contact the development team.
