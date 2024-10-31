@@ -21,7 +21,7 @@ A Spring Boot web application for managing patient records with comprehensive se
 
 ### Dependencies
 - Spring Data JPA
-- Hibernate Types
+- Hibernate
 - Lombok
 - Jakarta Validation
 
