@@ -138,6 +138,7 @@ public class PatientServiceImpl implements PatientService {
     public BaseResponse<PatientResponse> updatePatient(String pid, PatientUpdateRequest patientUpdateRequest) {
         String requestId = RequestIdUtils.generateRequestId();
 
+        PostCodeValidator.validatePostcode(patientUpdateRequest.getPostcode(), String.valueOf(patientUpdateRequest.getState()));
         try {
             Patient patient = patientRepository.findByPid(pid)
                     .orElseThrow(() -> new PatientNotFoundException("Patient not found with PID: " + pid));
