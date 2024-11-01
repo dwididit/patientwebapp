@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -76,34 +77,26 @@ public class PatientDataSeeder implements CommandLineRunner {
 
         sequenceNumber.set(1);
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 500000; i++) {
             Patient patient = createDummyPatient();
             patient.setPid(generateUniquePid());
             patients.add(patient);
 
-            if (i > 0 && i % 100 == 0) {
+            if (i > 0 && i % 100000 == 0) {
                 patientRepository.saveAll(patients);
                 patients.clear();
-                log.info("Saved batch of 100 patients, progress: {}/1000", i);
+                log.info("Saved batch of 100000 patients, progress: {}/100000", i);
             }
         }
 
         if (!patients.isEmpty()) {
             patientRepository.saveAll(patients);
         }
-        log.info("Successfully generated 1000 dummy patient records");
+        log.info("Successfully generated 500000 dummy patient records");
     }
 
     private String generateUniquePid() {
-        LocalDate now = LocalDate.now();
-
-        int sequence = sequenceNumber.getAndIncrement();
-
-        return String.format("%03d%02d%02d%02d",
-                sequence,
-                now.getDayOfMonth(),
-                now.getMonthValue(),
-                now.getYear() % 100);
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 
     private Patient createDummyPatient() {

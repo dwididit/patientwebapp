@@ -54,7 +54,7 @@ public class PatientController {
         return patientService.getAllPatients(page, size);
     }
 
-    @GetMapping("/pagination")
+    @GetMapping("/search")
     public BaseResponse<PaginationResponse<PatientResponse>> getPaginatedPatients(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,

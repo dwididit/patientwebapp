@@ -7,7 +7,6 @@ import dev.dwidi.patientwebapp.dto.patient.PatientUpdateRequest;
 import dev.dwidi.patientwebapp.entity.Patient;
 import dev.dwidi.patientwebapp.entity.embedded.AustralianAddress;
 import dev.dwidi.patientwebapp.enums.AustralianState;
-import dev.dwidi.patientwebapp.exception.FailedGeneratePIDException;
 import dev.dwidi.patientwebapp.exception.PatientNotFoundException;
 import dev.dwidi.patientwebapp.repository.PatientRepository;
 import dev.dwidi.patientwebapp.utils.PostCodeValidator;
@@ -21,8 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -96,42 +95,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     private String generatePatientId() {
-        try {
-            LocalDate now = LocalDate.now();
-            String todayDatePattern = String.format("%02d%02d%02d",
-                    now.getDayOfMonth(),
-                    now.getMonthValue(),
-                    now.getYear() % 100);
-
-            // Find the absolute maximum PID in the database for today
-            Optional<Integer> maxSequenceToday = patientRepository.findMaxSequenceByDatePattern(todayDatePattern);
-
-            int nextSequence = maxSequenceToday
-                    .map(seq -> seq + 1)
-                    .orElse(1);
-
-            String newPid = String.format("%d%02d%02d%02d",
-                    nextSequence,
-                    now.getDayOfMonth(),
-                    now.getMonthValue(),
-                    now.getYear() % 100);
-
-            // Double-check if PID exists (handle race conditions)
-            while (patientRepository.existsByPid(newPid)) {
-                nextSequence++;
-                newPid = String.format("%d%02d%02d%02d",
-                        nextSequence,
-                        now.getDayOfMonth(),
-                        now.getMonthValue(),
-                        now.getYear() % 100);
-            }
-
-            return newPid;
-
-        } catch (Exception e) {
-            log.error("Error generating patient ID: {}", e.getMessage());
-            throw new FailedGeneratePIDException("Error generating patient ID");
-        }
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 
     @Override
