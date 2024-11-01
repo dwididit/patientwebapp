@@ -60,6 +60,9 @@ Before you begin, ensure you have the following installed:
    ```bash
    mvn spring-boot:run
    ```
+   
+## Swagger UI
+Visit Swagger UI here: `http://localhost:9090/swagger-ui/index.html`
 
 ## Configuration
 
