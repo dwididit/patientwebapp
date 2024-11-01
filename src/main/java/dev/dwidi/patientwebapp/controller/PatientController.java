@@ -1,14 +1,17 @@
 package dev.dwidi.patientwebapp.controller;
 
 import dev.dwidi.patientwebapp.dto.BaseResponse;
-import dev.dwidi.patientwebapp.dto.patient.PatientRequest;
-import dev.dwidi.patientwebapp.dto.patient.PatientResponse;
-import dev.dwidi.patientwebapp.dto.patient.PatientUpdateRequest;
+import dev.dwidi.patientwebapp.dto.patient.*;
+import dev.dwidi.patientwebapp.enums.AustralianState;
+import dev.dwidi.patientwebapp.service.PaginationService;
 import dev.dwidi.patientwebapp.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/patient")
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class PatientController {
 
     private final PatientService patientService;
+    private final PaginationService paginationService;
 
     @PostMapping("/create")
     public BaseResponse<PatientResponse> createPatient(@RequestBody PatientRequest patientRequest) {
@@ -48,5 +52,33 @@ public class PatientController {
             @RequestParam(required = false) Integer size) {
         log.info("Receiving request to get patient using pagination");
         return patientService.getAllPatients(page, size);
+    }
+
+    @GetMapping("/pagination")
+    public BaseResponse<PaginationResponse<PatientResponse>> getPaginatedPatients(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) AustralianState state,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        log.info("Receiving pagination request with parameters: page={}, size={}, name={}, state={}, sortBy={}, sortDirection={}",
+                page, size, name, state, sortBy, sortDirection);
+
+        PaginationRequest request = PaginationRequest.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortBy)
+                .sortDirection(sortDirection)
+                .name(name)
+                .state(state)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        return paginationService.getPatientsByPage(request);
     }
 }

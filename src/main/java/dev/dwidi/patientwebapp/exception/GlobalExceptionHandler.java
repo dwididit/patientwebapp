@@ -56,6 +56,20 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidPostcodeException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public BaseResponse<String> handleInvalidPostcodeException(InvalidPostcodeException ex, WebRequest request) {
+        String requestId = RequestIdUtils.generateRequestId();
+        logException("Failed generate PID exception", requestId, request, ex);
+
+        return new BaseResponse<>(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                null,
+                requestId
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public BaseResponse<String> handleGlobalException(Exception ex, WebRequest request) {

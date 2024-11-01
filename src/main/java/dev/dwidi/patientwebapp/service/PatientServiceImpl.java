@@ -10,6 +10,7 @@ import dev.dwidi.patientwebapp.enums.AustralianState;
 import dev.dwidi.patientwebapp.exception.FailedGeneratePIDException;
 import dev.dwidi.patientwebapp.exception.PatientNotFoundException;
 import dev.dwidi.patientwebapp.repository.PatientRepository;
+import dev.dwidi.patientwebapp.utils.PostCodeValidator;
 import dev.dwidi.patientwebapp.utils.RequestIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ public class PatientServiceImpl implements PatientService {
     public BaseResponse<PatientResponse> createPatient(PatientRequest patientRequest) {
 
         String requestId = RequestIdUtils.generateRequestId();
+
+        PostCodeValidator.validatePostcode(patientRequest.getPostcode(), String.valueOf(patientRequest.getState()));
 
         try {
 
@@ -94,19 +97,36 @@ public class PatientServiceImpl implements PatientService {
 
     private String generatePatientId() {
         try {
-            // Get next sequence value from database
-            Long sequence = patientRepository.getNextSequenceValue();
             LocalDate now = LocalDate.now();
-
-            // Ensure sequence stays within 3 digits
-            int sequenceNumber = (int) (sequence % 1000);
-            if (sequenceNumber == 0) sequenceNumber = 1;
-
-            return String.format("%03d%02d%02d%02d",
-                    sequenceNumber,
+            String todayDatePattern = String.format("%02d%02d%02d",
                     now.getDayOfMonth(),
                     now.getMonthValue(),
                     now.getYear() % 100);
+
+            // Find the absolute maximum PID in the database for today
+            Optional<Integer> maxSequenceToday = patientRepository.findMaxSequenceByDatePattern(todayDatePattern);
+
+            int nextSequence = maxSequenceToday
+                    .map(seq -> seq + 1)
+                    .orElse(1);
+
+            String newPid = String.format("%d%02d%02d%02d",
+                    nextSequence,
+                    now.getDayOfMonth(),
+                    now.getMonthValue(),
+                    now.getYear() % 100);
+
+            // Double-check if PID exists (handle race conditions)
+            while (patientRepository.existsByPid(newPid)) {
+                nextSequence++;
+                newPid = String.format("%d%02d%02d%02d",
+                        nextSequence,
+                        now.getDayOfMonth(),
+                        now.getMonthValue(),
+                        now.getYear() % 100);
+            }
+
+            return newPid;
 
         } catch (Exception e) {
             log.error("Error generating patient ID: {}", e.getMessage());
