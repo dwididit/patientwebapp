@@ -25,16 +25,6 @@ A Spring Boot web application for managing patient records with comprehensive se
 - Lombok
 - Jakarta Validation
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-| Requirement | Version |
-|------------|---------|
-| JDK        | ≥ 17    |
-| Maven      | ≥ 3.6   |
-| PostgreSQL | ≥ 12    |
-
 ## Getting Started
 
 1. **Clone the repository**
