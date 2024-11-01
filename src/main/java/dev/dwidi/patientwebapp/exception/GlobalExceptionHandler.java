@@ -1,5 +1,6 @@
 package dev.dwidi.patientwebapp.exception;
 
+import dev.dwidi.patientwebapp.constant.ApplicationConstant;
 import dev.dwidi.patientwebapp.dto.BaseResponse;
 import dev.dwidi.patientwebapp.utils.RequestIdUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -65,6 +68,50 @@ public class GlobalExceptionHandler {
         return new BaseResponse<>(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
+                null,
+                requestId
+        );
+    }
+
+    @ExceptionHandler(DateInvalidFormatException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public BaseResponse<String> handleDateInvalidFormatException(DateInvalidFormatException ex, WebRequest request) {
+        String requestId = RequestIdUtils.generateRequestId();
+        logException("Date must on format YYYY-MM-DD", requestId, request, ex);
+
+        return new BaseResponse<>(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                null,
+                requestId
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public BaseResponse<String> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String requestId = RequestIdUtils.generateRequestId();
+        String message;
+
+        if (ex.getParameter().getParameterType().equals(LocalDate.class)) {
+            message = String.format(
+                    "Invalid date format for parameter '%s'. Expected format: %s",
+                    ex.getName(),
+                    ApplicationConstant.DATE_PATTERN
+            );
+        } else {
+            message = String.format(
+                    "Invalid value for parameter '%s'. Expected type: %s",
+                    ex.getName(),
+                    ex.getParameter().getParameterType().getSimpleName()
+            );
+        }
+
+        log.error("Parameter conversion error: {}", message);
+
+        return new BaseResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                message,
                 null,
                 requestId
         );

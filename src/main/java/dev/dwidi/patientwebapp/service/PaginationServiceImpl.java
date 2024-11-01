@@ -5,7 +5,9 @@ import dev.dwidi.patientwebapp.dto.patient.PaginationRequest;
 import dev.dwidi.patientwebapp.dto.patient.PaginationResponse;
 import dev.dwidi.patientwebapp.dto.patient.PatientResponse;
 import dev.dwidi.patientwebapp.entity.Patient;
+import dev.dwidi.patientwebapp.exception.DateInvalidFormatException;
 import dev.dwidi.patientwebapp.repository.PatientRepository;
+import dev.dwidi.patientwebapp.utils.DateValidator;
 import dev.dwidi.patientwebapp.utils.RequestIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,8 +33,12 @@ public class PaginationServiceImpl implements PaginationService {
 
     @Override
     public BaseResponse<PaginationResponse<PatientResponse>> getPatientsByPage(PaginationRequest request) {
+
         String requestId = RequestIdUtils.generateRequestId();
+
         try {
+            validateDateRange(request.getStartDate(), request.getEndDate());
+
             Sort sort = createSort(request);
             Pageable pageable = createPageable(request, sort);
             Specification<Patient> spec = createSpecifications(request);
@@ -50,7 +57,7 @@ public class PaginationServiceImpl implements PaginationService {
             log.error("Error retrieving patients with pagination: {}", e.getMessage());
             return new BaseResponse<>(
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "Error retrieving patients",
+                    e.getMessage(),
                     null,
                     requestId
             );
@@ -115,6 +122,20 @@ public class PaginationServiceImpl implements PaginationService {
             return spec.toPredicate(root, query, cb);
         };
     }
+
+    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null) {
+            DateValidator.validate(startDate.toString());
+        }
+        if (endDate != null) {
+            DateValidator.validate(endDate.toString());
+        }
+
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new DateInvalidFormatException("Start date cannot be after end date");
+        }
+    }
+
 
     private PaginationResponse<PatientResponse> createPaginationResponse(Page<Patient> patientsPage) {
         List<PatientResponse> patientResponses = patientsPage.getContent()

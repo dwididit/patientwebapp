@@ -3,6 +3,10 @@ package dev.dwidi.patientwebapp.utils;
 import dev.dwidi.patientwebapp.exception.InvalidPostcodeException;
 
 public class PostCodeValidator {
+
+    private PostCodeValidator() {
+
+    }
     public static void validatePostcode(String postcode, String state) {
         int postcodeInt;
         try {
