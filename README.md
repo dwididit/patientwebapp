@@ -55,7 +55,7 @@ A Spring Boot web application for managing patient records with comprehensive se
 Visit Swagger UI here: `http://localhost:9090/swagger-ui/index.html`
 
 ## Dummy Data Generation
-On first startup, the `PatientDataSeeder` will automatically generate 500,000 dummy patient records. This may take several minutes to complete.
+On first startup, the `PatientDataSeeder` class will automatically generate 500,000 dummy patient records. This may take several minutes to complete.
 
 
 ## Configuration
